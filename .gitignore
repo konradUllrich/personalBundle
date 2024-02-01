@@ -1,0 +1,5 @@
+.env
+logs/
+data/
+node_modules/
+portalZip/*

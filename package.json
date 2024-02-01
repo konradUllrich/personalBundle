@@ -1,0 +1,47 @@
+{
+  "name": "senfin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "cypress:open": "cypress open --e2e --browser chrome",
+    "cypress:run": "cypress run --e2e --browser chrome",
+    "gen": "stg -D mssql -h localhost -p 1433 -d ixsenfin -u sa -x a123456789C",
+    "genTypes": "pg-to-ts generate -c postgresql://postgres:.admin1@localhost/ixportal -o dbschema.ts --datesAsStrings",
+    "start": "docker compose up -d --always-recreate-deps",
+    "start:m": "cd manager && start IX-MANAGER.exe",
+    "stop": "docker compose down"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^8.0.2",
+    "@types/tedious": "^4.0.9",
+    "concurrently": "^8.2.2",
+    "cypress": "^13.6.2",
+    "cypress-await": "^1.4.4",
+    "cypress-each": "^1.13.3",
+    "cypress-real-events": "^1.10.0",
+    "kysely": "^0.26.3",
+    "kysely-codegen": "^0.10.1",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "@rmp135/sql-ts": "^1.18.0",
+    "@types/pg": "^8.11.0",
+    "focus-overlay": "^1.0.6",
+    "knex": "^3.0.1",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "moment-feiertage": "^2.0.9",
+    "moment-timezone": "^0.5.44",
+    "mysql2": "^3.6.1",
+    "pg": "^8.11.3",
+    "pg-to-ts": "^4.1.1",
+    "sequelize-browser": "^6.1.2",
+    "sequelize-typescript": "^2.1.5",
+    "sequelize-typescript-generator": "^11.0.5",
+    "tedious": "^16.4.0"
+  }
+}

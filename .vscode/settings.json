@@ -1,0 +1,42 @@
+{
+  "sqltools.autoConnectTo": ["test"],
+  "sqltools.connections": [
+    {
+      "askForPassword": false,
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "test",
+      "username": "postgres",
+      "password": ".admin1",
+      "database": "ixportal"
+    },
+    {
+      "mssqlOptions": {
+        "appName": "SQLTools",
+        "useUTC": true,
+        "encrypt": true
+      },
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 1433,
+      "driver": "MSSQL",
+      "name": "senfinmsSQL",
+      "database": "ixportal",
+      "username": "sa",
+      "password": "a123456789C"
+    }
+  ],
+
+  "logViewer.watch": [
+    {
+      "title": "Portal Log",
+      "pattern": "C:/Users/Konrad.Ullrich/Docker/ix-1/logs/portal.log"
+    },
+    {
+      "title": "Workflow Log",
+      "pattern": "C:/Users/Konrad.Ullrich/Docker/ix-1/logs/workflow.log"
+    }
+  ]
+}
