@@ -1,26 +1,30 @@
 import { createUser } from "./user/createUser";
-import { login as __login } from "./user/login";
+import { login as loginFn } from "./user/login";
 import { logout } from "./user/logout";
 import { runWorkflow } from "./runworkflow";
 import { dbCommant } from "./db/dbCommand";
 import { tables } from "dbschema";
+import { goto } from "./goto";
 
 export default () => {
   Cypress.Commands.add("createUser", createUser);
-  Cypress.Commands.add("login", __login);
+  Cypress.Commands.add("login", loginFn);
   Cypress.Commands.add("logout", logout);
   Cypress.Commands.add("runWorkflow", runWorkflow);
   Cypress.Commands.add("db", dbCommant);
+  Cypress.Commands.add("goto", goto);
 };
 
 declare global {
   namespace Cypress {
     interface Chainable {
       db: typeof dbCommant;
-      login: typeof __login;
+      //@ts-ignore
+      login: typeof loginFn;
       logout: typeof logout;
       createUser: typeof createUser;
       runWorkflow: typeof runWorkflow;
+      goto: typeof goto;
     }
   }
 }

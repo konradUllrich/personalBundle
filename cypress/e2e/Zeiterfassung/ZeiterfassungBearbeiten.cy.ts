@@ -6,6 +6,8 @@ import {
 import { runZeiterfassungsWorkflow } from "./ErstellungBögen/helpers/prepareData";
 import { createArbeitzeitByUserId } from "../Personal/helper/PersonalArbeitszeit";
 import { getTable } from "cypress/intrexx-cypress/tabe/getTable";
+import { ZE_T_MONAT } from "cypress/db";
+import { createUsers } from "cypress/intrexx-cypress/user/createUser";
 
 describe("template spec", () => {
   before(() => {
@@ -14,8 +16,10 @@ describe("template spec", () => {
   });
 
   it("Zeiterfassung bearbeiten", () => {
+    createUsers({ count: 10 });
     createPersonal({
       userValues: { memberOf: ["System/Benutzer", "Personal benutzen"] },
+      // personalValues: { REF_ART: 2 },
     }).then(({ personal, login, user }) => {
       cy.log("login", login);
       createArbeitzeitByUserId({ userId: user.LID, preset: "40h/20h" });
@@ -23,10 +27,15 @@ describe("template spec", () => {
     });
 
     runZeiterfassungsWorkflow();
-    cy.wait(8000);
+    cy.db<ZE_T_MONAT[]>("select * from ze_t_monat ORDER BY L_MONAT", {
+      retryUntil: ((v) => v.length === 12).toString(),
+    });
+
     goto("zeiterfassung");
     cy.wait(1000);
     // cy.get("td:contains(Januar)").click({ force: true });
+
+    cy.pause();
 
     getTable("#ID_tablecontrolEC647E21").then(({ rows, rowsElements }) => {
       //cy.wrap(rowsElements[0][0]).should("contain", "Januar").click();

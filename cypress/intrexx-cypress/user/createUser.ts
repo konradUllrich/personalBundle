@@ -19,8 +19,8 @@ export const createUsers = ({ count = 2 }: { count: number }) => {
 };
 
 export function createUser({
-  firstName = faker.person.firstName(),
-  lastName = faker.person.lastName(),
+  firstName = faker.person.firstName().replaceAll("'", ""),
+  lastName = faker.person.lastName().replaceAll("'", ""),
   memberOf = [],
 }: {
   firstName?: string;

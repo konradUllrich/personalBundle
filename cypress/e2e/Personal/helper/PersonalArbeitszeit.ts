@@ -35,10 +35,12 @@ const setArbeitzeit = (zeitInSec: number, zeitInSecUW?: number) => {
     B_WOCHENIDENTISCH: !zeitInSecUW,
   };
 };
+const h8 = 28800;
 const presets = {
-  "40h": { ...setArbeitzeit(14400) },
-  "40h/20h": { ...setArbeitzeit(14400 * 2, 14400) },
-  "20h": { ...setArbeitzeit(14400 / 2) },
+  "39h24m48s": { ...setArbeitzeit(28368) },
+  "40h": { ...setArbeitzeit(h8) },
+  "40h/20h": { ...setArbeitzeit(h8 * 2, h8) },
+  "20h": { ...setArbeitzeit(h8 / 2) },
 };
 export const createArbeitzeitByUserId = (
   { userId, preset = "40h" }: { userId: number; preset?: keyof typeof presets },

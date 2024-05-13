@@ -1,9 +1,15 @@
 import { Connection, Request, ConnectionConfig } from "tedious";
 export default (dbConfig: ConnectionConfig) => {
   return {
-    db: async ({ query }) => {
+    db: async ({ query, options }) => {
       const connection = new Connection(dbConfig);
-      console.log(query);
+      console.log({ query, options });
+
+      let retryUntil: (val?: any) => any = () => true;
+
+      if (options?.retryUntil) {
+        eval(`retryUntil = ${options.retryUntil}`);
+      }
       connection.on("connect", (err) => {
         if (err) {
           throw err;
@@ -17,6 +23,8 @@ export default (dbConfig: ConnectionConfig) => {
           execute();
         });
         connection.connect();
+        let retries = 0;
+        let waitingtime = 10;
         const execute = () => {
           const request = new Request(query, function (err, rowCount, rows) {
             if (err) {
@@ -30,8 +38,18 @@ export default (dbConfig: ConnectionConfig) => {
               }, {});
             });
 
-            res(r);
-            connection.close();
+            if (!retryUntil(r) && retries * waitingtime < 40000) {
+              retries += 1;
+              setTimeout(() => {
+                console.log(
+                  `Retry query!!!!!!!!! ${retries} ${retries * waitingtime}`
+                );
+                execute();
+              }, waitingtime);
+            } else {
+              res(r);
+              connection.close();
+            }
           });
 
           connection.execSql(request);

@@ -28,6 +28,9 @@ module.exports = defineConfig({
               rowCollectionOnDone: true,
               rowCollectionOnRequestCompletion: true,
               useColumnNames: true,
+              // columnNameReplacer(columnName) {
+              //   return columnName.toLowerCase();
+              // },
             },
           },
           pgConfig: {

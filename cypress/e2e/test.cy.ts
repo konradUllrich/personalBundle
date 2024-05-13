@@ -6,14 +6,15 @@ describe("test db", () => {
 
   it("test db", () => {
     cy.visit("/");
-    cy.createUser({ memberOf: ["Administrator"] })
-      .login()
-      .then((res) => {
-        cy.log("user", res);
-      });
+    // cy.createUser({ memberOf: ["Administrator"] })
+    //   .login()
+    //   .then((res) => {
+    //     cy.log("user", res);
+    //   });
 
-    cy.db<DB["dsuser"][]>("SELECT * FROM DSUSER").then((res) =>
-      cy.log("fax", res[0].dtbirth)
-    );
+    cy.db<DB["dsuser"][]>("SELECT * FROM DSUSER", {
+      retryUntil: ((val) => val.length > 49).toString(),
+      log: true,
+    }).then((res) => cy.log("fax", res));
   });
 });

@@ -9,7 +9,6 @@
     "gen": "stg -D mssql -h localhost -p 1433 -d ixsenfin -u sa -x a123456789C",
     "genTypes": "pg-to-ts generate -c postgresql://postgres:.admin1@localhost/ixportal -o dbschema.ts --datesAsStrings",
     "start": "docker compose up -d --always-recreate-deps",
-    "start:m": "cd manager && start IX-MANAGER.exe",
     "stop": "docker compose down"
   },
   "keywords": [],
@@ -42,6 +41,7 @@
     "sequelize-browser": "^6.1.2",
     "sequelize-typescript": "^2.1.5",
     "sequelize-typescript-generator": "^11.0.5",
-    "tedious": "^16.4.0"
+    "tedious": "^16.4.0",
+    "yup": "^1.4.0"
   }
 }
