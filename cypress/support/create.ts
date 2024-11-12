@@ -28,8 +28,12 @@ function parseValues<T extends object>(values: values<T> = {}, index?: number) {
 function stringifyValues(items: object) {
   let result = "";
 
+  console.log(items);
+
   Object.keys(items).forEach((key, index) => {
     const com = index === 0 ? "" : ",";
+    console.log(items[key]);
+
     if (items[key] === null) {
       result += com + null;
     }
@@ -61,18 +65,18 @@ export function create<T extends object>({
 }: createProps<T>) {
   const key = getGuid();
   const _items = {
-    STRID: key,
     ...items,
     ...parseValues(values, index),
+    strid: key,
   };
 
   const Fields = Object.keys(_items).join(",");
   const Values = stringifyValues(_items);
 
-  const upQuery = `INSERT INTO "${table}"(${Fields}) VALUES(${Values}); SELECT * FROM "${table}" WHERE STRID='${_items.STRID}'`;
-  const downQuery = `DELETE FROM "${table}" WHERE "STRID"='${_items.STRID}';`;
+  const upQuery = `INSERT INTO ${table} (${Fields}) VALUES(${Values}); SELECT * FROM ${table} WHERE STRID='${_items.strid}'`;
+  const downQuery = `DELETE FROM ${table} WHERE STRID='${_items.strid}';`;
 
-  const up = () => cy.db<T>(upQuery).then((r) => r[0]);
+  const up = () => cy.db<T>(upQuery).then((r) => r[1]);
 
   const down = () => {
     return cy.db(downQuery);

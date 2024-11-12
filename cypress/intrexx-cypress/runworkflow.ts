@@ -28,7 +28,6 @@ export function runWorkflow({
         .triggerUserWorkflowEvent(id, payload, { async: true })
         .then(() => {
           log.snapshot("after");
-
           Cypress.log({
             name: "runningWorkflow",
             displayName: label,

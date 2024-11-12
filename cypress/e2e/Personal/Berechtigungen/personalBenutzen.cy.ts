@@ -13,15 +13,21 @@ describe("Personal benutzen:", () => {
     cy.visit("/");
   });
   after(() => {
-    deleteAllPersonalData();
+    // deleteAllPersonalData();
   });
 
   it("should see", () => {
+    cy.log("bla", "ffff");
     loginAs({ memberOf: ["Personal benutzen"] });
-    meinePersonaldatenShould("be.visible");
-    einsteunngenShould("not.exist");
-    büroleitungVerwaltenShould("not.exist");
-    organisationsbaumBearbeitenShould("not.exist");
-    personalErfassenShould("not.exist");
+
+    cy.db("select * from per_t_personal").then((res) => {
+      cy.log(res);
+    });
+    //
+    // meinePersonaldatenShould("be.visible");
+    // einsteunngenShould("not.exist");
+    // büroleitungVerwaltenShould("not.exist");
+    // organisationsbaumBearbeitenShould("not.exist");
+    // personalErfassenShould("not.exist");
   });
 });

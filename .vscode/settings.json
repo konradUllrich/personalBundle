@@ -28,15 +28,16 @@
       "password": "a123456789C"
     }
   ],
+  "sqltools.format": {"linesBetweenQueries": "preserve"},
 
   "logViewer.watch": [
     {
       "title": "Portal Log",
-      "pattern": "C:/Users/Konrad.Ullrich/Docker/ix-1/logs/portal.log"
+      "pattern": "./logs/portal.log"
     },
     {
       "title": "Workflow Log",
-      "pattern": "C:/Users/Konrad.Ullrich/Docker/ix-1/logs/workflow.log"
+      "pattern": "./logs/workflow.log"
     }
   ]
 }

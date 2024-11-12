@@ -127,7 +127,7 @@ services:
       intrexx-init:
         condition: service_completed_successfully
     environment:
-      TZ: "Europe/Berlin"
+      # TZ: "Europe/Berlin"
       DB_HOST: db
       SOLR_HOST: zookeeper
       SOLR_PORT: 2181
@@ -153,6 +153,7 @@ services:
       - intrexx-cfg:/opt/intrexx/cfg
       - ./portalZip:${IX_PORTAL_ZIP_MNTPT}
       - ./logs:/opt/intrexx/org/portal/log
+      # - ./html:/opt/intrexx/org/portal/internal/system/vm/html
       # - ${IX_PORTAL_DIR_HOST}:/opt/intrexx/org
     healthcheck:
       test: ["CMD-SHELL", "curl -f localhost:1337/service/ping/"]

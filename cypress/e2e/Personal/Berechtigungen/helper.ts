@@ -30,6 +30,7 @@ export const loginAs = ({
     personalValues: {},
     userValues: { memberOf: ["System/Benutzer", ...memberOf] },
   }).then(({ user, login }) => {
+    cy.log("user", user);
     cy.login(login);
   });
   cy.get("#A-79A31F5A68CB04830585238B835AD5FE939EE2B5").click({

@@ -31,3 +31,11 @@ if (false) {
     app.document.head.appendChild(style);
   }
 }
+
+const origLog = Cypress.log;
+Cypress.log = function (opts, ...other) {
+  if (opts.name === "request") {
+    return;
+  }
+  return origLog(opts, ...other);
+};

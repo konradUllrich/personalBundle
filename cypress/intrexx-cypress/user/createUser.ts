@@ -26,26 +26,32 @@ export function createUser({
   firstName?: string;
   lastName?: string;
   memberOf?: (keyof typeof users.groups)[];
-}) {
+}): Cypress.Chainable<{
+  user: DB["dsuser"];
+  login: { name: string; pw: string };
+}> {
+  const _firstName = firstName.toLowerCase();
+  const _lastName = lastName.toLowerCase();
+
   cy.runWorkflow({
     id: USER_MANGAGEMENT_GUID,
     name: "User Create",
     payload: {
-      firstName: firstName.toLowerCase(),
-      lastName: lastName.toLowerCase(),
+      firstName: _firstName,
+      lastName: _lastName,
       pw: "cypressdoesintrexx",
       memberOf: memberOf.map((key) => users.groups[key]),
     },
   });
 
   return cy
-    .db<DSUSER[]>(
-      `SELECT * FROM dsuser WHERE strlogin = 'fake-${firstName}.${lastName}'`
+    .db<DB["dsuser"]>(
+      `SELECT * FROM dsuser WHERE strlogin = 'fake-${_firstName}.${_lastName}'`
     )
     .then((u) => ({
-      user: u[0],
+      user: u[0] as DB["dsuser"],
       login: {
-        name: `fake-${firstName}.${lastName}`,
+        name: `fake-${_firstName}.${_lastName}`,
         pw: "cypressdoesintrexx",
       },
     }));
@@ -59,5 +65,5 @@ export const clearAllUsers = () => {
       erase: "all",
     },
   });
-  cy.db(`DELETE FROM "DSUSER" WHERE "STRLOGIN" LIKE 'fake%'`);
+  cy.db(`DELETE FROM DSUSER WHERE STRLOGIN LIKE 'fake%'`);
 };

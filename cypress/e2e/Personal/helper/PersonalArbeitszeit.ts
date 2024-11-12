@@ -1,38 +1,41 @@
 import { create } from "cypress/support/create";
-import { PER_T_PERS_AZK } from "../../../db";
+
 import { getPersonalByUserId } from "./Personal";
 import moment from "moment";
 
 // GET
 export const getArbeitzeitByUserIdQuery = (userId: number) =>
-  `SELECT * FROM "PER_T_PERS_AZK" WHERE "FKSTRID"=ANY(SELECT "STRID" FROM "PER_T_PERSONAL" WHERE "REF_BENUTZER"=${userId})`;
+  `SELECT * FROM PER_T_PERS_AZK WHERE FKSTRID=ANY(SELECT "STRID" FROM PER_T_PERSONAL WHERE REF_BENUTZER=${userId})`;
 export const getArbeitzeitByUserId = (userId: number) =>
-  cy.db<PER_T_PERS_AZK[]>(getArbeitzeitByUserIdQuery(userId));
+  cy.db<DB["per_t_pers_azk"][]>(getArbeitzeitByUserIdQuery(userId));
 
 // CREATE
 
 const setArbeitzeit = (zeitInSec: number, zeitInSecUW?: number) => {
   const _zeitInSecUW = zeitInSecUW || zeitInSec;
-  const days = ["MO", "DI", "MI", "DO", "FR"] as const;
+  const days = ["mo", "di", "mi", "do", "fr"] as const;
 
   const toTimeasDate = (time: number) =>
     moment("1969-12-31T23:00:00.000Z").utc().add(time, "seconds").format();
   function setTimes(
-    cb: (key: (typeof days)[number]) => keyof PER_T_PERS_AZK,
+    cb: (key: (typeof days)[number]) => keyof DB["per_t_pers_azk"],
     value: any
   ) {
-    return days.reduce((acc, day) => {
-      return { ...acc, [cb(day)]: value };
-    }, {} as Partial<PER_T_PERS_AZK>);
+    return days.reduce(
+      (acc, day) => {
+        return { ...acc, [cb(day)]: value };
+      },
+      {} as Partial<DB["per_t_pers_azk"]>
+    );
   }
   return {
-    ...setTimes((day) => `L_ARBEITSZEIT${day}INSEKUNDEN`, zeitInSec),
-    ...setTimes((day) => `L_UWARBEITSZEIT${day}INSEKUNDEN`, _zeitInSecUW),
-    ...setTimes((day) => `DT_ARBEITSZEIT${day}`, toTimeasDate(zeitInSec)),
-    ...setTimes((day) => `DT_UWARBEITSZEIT${day}`, toTimeasDate(_zeitInSecUW)),
-    L_ARBEITSZEITSUMMEINSEKUNDEN: zeitInSec * 5,
-    L_UWARBEITSZEITSUMMEINSEKUNDEN: _zeitInSecUW * 5,
-    B_WOCHENIDENTISCH: !zeitInSecUW,
+    ...setTimes((day) => `l_arbeitszeit${day}insekunden`, zeitInSec),
+    ...setTimes((day) => `l_uwarbeitszeit${day}insekunden`, _zeitInSecUW),
+    ...setTimes((day) => `dt_arbeitszeit${day}`, toTimeasDate(zeitInSec)),
+    ...setTimes((day) => `dt_uwarbeitszeit${day}`, toTimeasDate(_zeitInSecUW)),
+    l_arbeitszeitsummeinsekunden: zeitInSec * 5,
+    l_uwarbeitszeitsummeinsekunden: _zeitInSecUW * 5,
+    b_wochenidentisch: !zeitInSecUW,
   };
 };
 const h8 = 28800;
@@ -44,20 +47,24 @@ const presets = {
 };
 export const createArbeitzeitByUserId = (
   { userId, preset = "40h" }: { userId: number; preset?: keyof typeof presets },
-  values?: Partial<typeof arbeitszeit>
+  values?: Partial<DB["per_t_pers_azk"]>
 ) => {
   getPersonalByUserId(userId).then((personal) => {
-    cy.db(
-      create<PER_T_PERS_AZK>({
-        table: "PER_T_PERS_AZK",
-        items: {
-          ...arbeitszeit,
-          ...presets[preset],
-          FKSTRID: personal.STRID,
-        },
-        values,
-      }).upQuery
-    );
+    cy.log("", personal);
+
+    create<DB["per_t_pers_azk"]>({
+      table: "PER_T_PERS_AZK",
+      items: {
+        ...arbeitszeit,
+        ...presets[preset],
+        fkstrid: personal.strid,
+      },
+      values,
+    })
+      .up()
+      .then((r) => {
+        cy.log("azk", r);
+      });
   });
 };
 
@@ -68,80 +75,80 @@ export const deleteArbeitzeitByUserIdQuery = (userId: number) =>
 export const deleteArbeitzeitByUserId = (userId: number) =>
   cy.db(deleteArbeitzeitByUserIdQuery(userId));
 
-const arbeitszeit = {
-  DT_UWARBEITSZEITSO: "1969-12-31T23:00:00.000Z",
-  STR_ARBEITSZEITSO: null,
-  L_UWARBEITSZEITMIINSEKUNDEN: 14400,
-  DT_UWARBEITSZEITSA: "1969-12-31T23:00:00.000Z",
-  L_UWARBEITSZEITFRINSEKUNDEN: 14400,
-  DT_ARBEITSZEITDO: "1970-01-01T03:00:00.000Z",
-  DT_UWARBEITSZEITDO: "1970-01-01T03:00:00.000Z",
-  L_UWARBEITSZEITSOINSEKUNDEN: 0,
-  STR_UWARBEITSZEITSUMME: "20:00:00",
-  STR_UWARBEITSZEITSO: null,
-  L_UWARBEITSZEITDIINMINUTEN: null,
-  L_ARBEITSZEITFRINMINUTEN: null,
-  DT_ARBEITSZEITSO: "1969-12-31T23:00:00.000Z",
-  L_UWARBEITSZEITSOINMINUTEN: null,
-  DT_ARBEITSZEITSUMME: null,
-  L_ARBEITSZEITMOINSEKUNDEN: 14400,
-  DT_ARBEITSZEITMI: "1970-01-01T03:00:00.000Z",
-  TXT_BEMERKUNGEN: null,
-  L_UWARBEITSZEITMIINMINUTEN: null,
-  DT_ARBEITSZEITFR: "1970-01-01T03:00:00.000Z",
-  DT_UWARBEITSZEITSUMME: null,
-  L_UWARBEITSZEITMOINMINUTEN: null,
-  DT_BIS: "9999-12-30T23:00:00.000Z",
-  DT_VON: "2023-06-06T22:00:00.000Z",
-  L_ARBEITSZEITDOINSEKUNDEN: 14400,
-  L_ARBEITSZEITFRINSEKUNDEN: 14400,
-  L_ARBEITSZEITSAINSEKUNDEN: 0,
-  STR_ARBEITSZEITDO: null,
-  DT_UWARBEITSZEITFR: "1970-01-01T03:00:00.000Z",
-  DT_UWARBEITSZEITDI: "1970-01-01T03:00:00.000Z",
-  L_ARBEITSZEITDIINMINUTEN: null,
-  STR_ARBEITSZEITMI: null,
-  STR_UWARBEITSZEITFR: null,
-  STR_UWARBEITSZEITMO: null,
-  DTINSERT: "2023-11-03T16:18:59.746Z",
-  STR_UWARBEITSZEITDI: null,
-  L_ARBEITSZEITSAINMINUTEN: null,
-  L_ARBEITZEITSUMMEINMINUTEN: null,
-  L_UWARBEITSZEITSUMMEINMINUTEN: null,
-  STR_ARBEITSZEITSA: null,
-  STR_UWARBEITSZEITDO: null,
-  DT_UWARBEITSZEITMO: "1970-01-01T03:00:00.000Z",
-  L_UWARBEITSZEITFRINMINUTEN: null,
-  STR_ARBEITSZEITMO: null,
-  DT_UWARBEITSZEITMI: "1970-01-01T03:00:00.000Z",
-  FKSTRID: "B29FBCF768169F485BC843C686FFBD0323E6F092",
-  L_UWARBEITSZEITSAINSEKUNDEN: 0,
-  STR_ARBEITSZEITFR: null,
-  L_ARBEITSZEITSOINMINUTEN: null,
-  L_ARBEITSZEITMIINMINUTEN: null,
-  DT_ARBEITSZEITMO: "1970-01-01T03:00:00.000Z",
-  STR_ARBEITSZEITSUMME: "20:00:00",
-  DTEDIT: "2023-11-03T16:18:59.746Z",
-  L_UWARBEITSZEITDOINMINUTEN: null,
-  STR_UWARBEITSZEITSA: null,
-  L_ARBEITSZEITSUMMEINSEKUNDEN: 72000,
-  B_WOCHENIDENTISCH: true,
-  L_UWARBEITSZEITDIINSEKUNDEN: 14400,
-  // STRID: "3235245B81376FC3C05A09E01066CE5BCFD873E5",
-  L_ARBEITSZEITDIINSEKUNDEN: 14400,
-  L_UWARBEITSZEITSAINMINUTEN: null,
-  STR_UWARBEITSZEITMI: null,
-  L_ARBEITSZEITDOINMINUTEN: null,
-  L_UWARBEITSZEITSUMMEINSEKUNDEN: 72000,
-  LUSERIDINSERT: 1,
-  L_UWARBEITSZEITDOINSEKUNDEN: 14400,
-  STR_ARBEITSZEITDI: null,
-  DT_ARBEITSZEITDI: "1970-01-01T03:00:00.000Z",
-  DT_ARBEITSZEITSA: "1969-12-31T23:00:00.000Z",
-  LUSERID: 1,
-  L_UWARBEITSZEITMOINSEKUNDEN: 14400,
-  L_ARBEITSZEITMOINMINUTEN: null,
-  L_ARBEITSZEITMIINSEKUNDEN: 14400,
-  L_ARBEITSZEITSOINSEKUNDEN: 0,
-  B_INITIALEREINTRAG: null,
-} as unknown as PER_T_PERS_AZK;
+const arbeitszeit: DB["per_t_pers_azk"] = {
+  dt_uwarbeitszeitso: "1969-12-31T23:00:00.000Z",
+  str_arbeitszeitso: null,
+  l_uwarbeitszeitmiinsekunden: 14400,
+  dt_uwarbeitszeitsa: "1969-12-31T23:00:00.000Z",
+  l_uwarbeitszeitfrinsekunden: 14400,
+  dt_arbeitszeitdo: "1970-01-01T03:00:00.000Z",
+  dt_uwarbeitszeitdo: "1970-01-01T03:00:00.000Z",
+  l_uwarbeitszeitsoinsekunden: 0,
+  str_uwarbeitszeitsumme: "20:00:00",
+  str_uwarbeitszeitso: null,
+  l_uwarbeitszeitdiinminuten: null,
+  l_arbeitszeitfrinminuten: null,
+  dt_arbeitszeitso: "1969-12-31T23:00:00.000Z",
+  l_uwarbeitszeitsoinminuten: null,
+  dt_arbeitszeitsumme: null,
+  l_arbeitszeitmoinsekunden: 14400,
+  dt_arbeitszeitmi: "1970-01-01T03:00:00.000Z",
+  txt_bemerkungen: null,
+  l_uwarbeitszeitmiinminuten: null,
+  dt_arbeitszeitfr: "1970-01-01T03:00:00.000Z",
+  dt_uwarbeitszeitsumme: null,
+  l_uwarbeitszeitmoinminuten: null,
+  dt_bis: "9999-12-30T23:00:00.000Z",
+  dt_von: "2023-06-06T22:00:00.000Z",
+  l_arbeitszeitdoinsekunden: 14400,
+  l_arbeitszeitfrinsekunden: 14400,
+  l_arbeitszeitsainsekunden: 0,
+  str_arbeitszeitdo: null,
+  dt_uwarbeitszeitfr: "1970-01-01T03:00:00.000Z",
+  dt_uwarbeitszeitdi: "1970-01-01T03:00:00.000Z",
+  l_arbeitszeitdiinminuten: null,
+  str_arbeitszeitmi: null,
+  str_uwarbeitszeitfr: null,
+  str_uwarbeitszeitmo: null,
+  dtinsert: "2023-11-03T16:18:59.746Z",
+  str_uwarbeitszeitdi: null,
+  l_arbeitszeitsainminuten: null,
+  l_arbeitzeitsummeinminuten: null,
+  l_uwarbeitszeitsummeinminuten: null,
+  str_arbeitszeitsa: null,
+  str_uwarbeitszeitdo: null,
+  dt_uwarbeitszeitmo: "1970-01-01T03:00:00.000Z",
+  l_uwarbeitszeitfrinminuten: null,
+  str_arbeitszeitmo: null,
+  dt_uwarbeitszeitmi: "1970-01-01T03:00:00.000Z",
+  fkstrid: "B29FBCF768169F485BC843C686FFBD0323E6F092",
+  l_uwarbeitszeitsainsekunden: 0,
+  str_arbeitszeitfr: null,
+  l_arbeitszeitsoinminuten: null,
+  l_arbeitszeitmiinminuten: null,
+  dt_arbeitszeitmo: "1970-01-01T03:00:00.000Z",
+  str_arbeitszeitsumme: "20:00:00",
+  dtedit: "2023-11-03T16:18:59.746Z",
+  l_uwarbeitszeitdoinminuten: null,
+  str_uwarbeitszeitsa: null,
+  l_arbeitszeitsummeinsekunden: 72000,
+  b_wochenidentisch: true,
+  l_uwarbeitszeitdiinsekunden: 14400,
+  strid: "3235245B81376FC3C05A09E01066CE5BCFD873E5",
+  l_arbeitszeitdiinsekunden: 14400,
+  l_uwarbeitszeitsainminuten: null,
+  str_uwarbeitszeitmi: null,
+  l_arbeitszeitdoinminuten: null,
+  l_uwarbeitszeitsummeinsekunden: 72000,
+  luseridinsert: 1,
+  l_uwarbeitszeitdoinsekunden: 14400,
+  str_arbeitszeitdi: null,
+  dt_arbeitszeitdi: "1970-01-01T03:00:00.000Z",
+  dt_arbeitszeitsa: "1969-12-31T23:00:00.000Z",
+  luserid: 1,
+  l_uwarbeitszeitmoinsekunden: 14400,
+  l_arbeitszeitmoinminuten: null,
+  l_arbeitszeitmiinsekunden: 14400,
+  l_arbeitszeitsoinsekunden: 0,
+  b_initialereintrag: null,
+};

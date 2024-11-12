@@ -17,6 +17,7 @@ describe("Personal bearbeiten", () => {
   });
 
   it("should see", () => {
+    cy.visit("/");
     loginAs({ memberOf: ["Personal bearbeiten"] });
     meinePersonaldatenShould("be.visible");
     einsteunngenShould("not.exist");

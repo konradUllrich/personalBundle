@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="exports">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/exports/zeiterfassung_fix_2024.zip!/" />
+      <root url="jar://$PROJECT_DIR$/exports/feiertage_fix.zip!/" />
+      <root url="jar://$PROJECT_DIR$/exports/clear_Zeiterfassungsboegen_ohne_Ref_Benutzer.zip!/" />
+      <root url="jar://$PROJECT_DIR$/exports/prozess_init_Quartalsbericht_add_postgres.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

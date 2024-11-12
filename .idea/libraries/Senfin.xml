@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="Senfin">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/portalZip/Senfin.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

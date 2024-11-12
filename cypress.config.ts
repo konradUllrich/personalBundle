@@ -10,7 +10,7 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       on("task", {
         ...dataBase({
-          db: "msSql",
+          db: "postgress",
           msConfig: {
             server: "localhost",
             authentication: {

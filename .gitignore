@@ -2,3 +2,7 @@ logs/
 data/
 node_modules/
 portalZip/*
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
