@@ -247,7 +247,7 @@ export default class TestBuilder {
       index++;
     }
 
-    const dbTest = new DatabaseTest(this.site.ix, this.site.page, this.site);
+    const dbTest = new DatabaseTest(this.site.page, this.site);
 
     await dbTest.testDatabaseData(props);
   }

@@ -1,12 +1,12 @@
 import { Page } from "@playwright/test";
 import Ix from "tests/setup/Ix/ix";
-import { test, expect } from "tests/setup/db";
+import { test, expect, prisma } from "tests/setup/db";
 import { testItem } from "./TestBuilder";
 import { Eingabeseite } from "../Eingabeseite";
 
 export default class DatabaseTest {
   constructor(
-    public readonly ix: Ix,
+    // public readonly ix: Ix,
     public readonly page: Page,
     public readonly site: Eingabeseite
   ) {}
@@ -42,31 +42,31 @@ export default class DatabaseTest {
       .locator(".guid-247A207A8264FA0B6A10458361E39B64F9B67FE6")
       .textContent();
 
-    const zeitBefore = await this.ix.prisma.ze_t_m_d_zeiten.findFirst({
+    const zeitBefore = await prisma.ze_t_m_d_zeiten.findFirst({
       where: { fkstrid: id },
     });
-    const dayBefore = await this.ix.prisma.ze_t_m_datum.findFirst({
+    const dayBefore = await prisma.ze_t_m_datum.findFirst({
       where: { strid: id },
     });
     await this.page
       .locator(".guid-247A207A8264FA0B6A10458361E39B64F9B67FE6")
       .waitFor({ state: "detached" });
-    const timeItems = await this.ix.prisma.ze_t_m_d_zeiten.findMany({
+    const timeItems = await prisma.ze_t_m_d_zeiten.findMany({
       where: { fkstrid: id },
     });
-    const day = await this.ix.prisma.ze_t_m_datum.findFirst({
+    const day = await prisma.ze_t_m_datum.findFirst({
       where: { strid: id },
     });
-    await this.ix.prisma.ze_t_m_d_zeiten.deleteMany({
+    await prisma.ze_t_m_d_zeiten.deleteMany({
       where: { fkstrid: id },
     });
-    await this.ix.prisma.ze_t_m_datum.deleteMany({
+    await prisma.ze_t_m_datum.deleteMany({
       where: { strid: id },
     });
-    await this.ix.prisma.ze_t_m_datum.create({
+    await prisma.ze_t_m_datum.create({
       data: { ...dayBefore },
     });
-    await this.ix.prisma.ze_t_m_d_zeiten.create({
+    await prisma.ze_t_m_d_zeiten.create({
       data: { ...zeitBefore },
     });
     return { timeItems, day };

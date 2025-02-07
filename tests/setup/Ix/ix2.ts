@@ -1,14 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
-import {
-  Page,
-  BrowserContext,
-  APIRequestContext,
-  request,
-} from "@playwright/test";
+import { request } from "@playwright/test";
 
 import { faker } from "@faker-js/faker";
-import { expect } from "@playwright/test";
+import { expect, chromium } from "@playwright/test";
 
 import fs from "fs";
 
@@ -46,13 +41,17 @@ class CookiePresist {
 }
 
 export default class Ix {
-  constructor(
-    public readonly page: Page,
-    public readonly context: BrowserContext
-  ) {}
+  async getPage() {
+    const browserChromium = await chromium.launch({ headless: true });
+    const context = await browserChromium.newContext();
+    const page = await browserChromium.newPage();
+    await page.goto("http://localhost:1337/");
+    return { page, context };
+  }
 
   async runWorkflow({ id, payload }: { id: string; payload }) {
-    await this.page.evaluate(
+    const { page } = await this.getPage();
+    await page.evaluate(
       ([id, payload]) => {
         //@ts-ignore
         triggerUserWorkflowEvent(id, payload, { async: true });
@@ -74,17 +73,17 @@ export default class Ix {
   }: {
     name: string;
     pw: string;
-    goto?: string;
+    goto: string;
   }) {
+    const { page, context } = await this.getPage();
     const cookie = CookiePresist.getUserCookie(name);
     if (cookie) {
       console.log(`login ${name} with cookie`);
-      this.context.addCookies(cookie);
-      await this.page.goto(goto);
+      context.addCookies(cookie);
+      await page.goto(goto);
       return;
     }
-    await this.context.clearCookies();
-
+    await context.clearCookies();
     console.log(`login ${name} with Api`);
     const req = await request.newContext();
     const res = await req.post(`/service/login/login`, {
@@ -108,7 +107,7 @@ export default class Ix {
       sameSite: "Lax",
     } as const;
 
-    this.context.addCookies([apiCookie]);
+    context.addCookies([apiCookie]);
     CookiePresist.writeUserCookie(name, [apiCookie]);
 
     // await this.page.goto("/");
@@ -128,14 +127,15 @@ export default class Ix {
     };
   }
 
-  async makeShureToHaveWindow() {
-    if (this.page.url() !== "about:blank") return;
-    await this.page.goto("/");
-  }
+  // async makeShureToHaveWindow() {
+  //   if (this.page.url() !== "about:blank") return;
+  //   await this.page.goto("/");
+  // }
 
   async createUsers(
     props?: 1 | number | Partial<FakeUserInput> | Partial<FakeUserInput>[]
   ) {
+    const { page } = await this.getPage();
     let users: FakeUserInput[] = [];
     let isOne = false;
     if (props === 1) {
@@ -159,14 +159,12 @@ export default class Ix {
       users = [{ ...this.getFakeuser() }];
     }
 
-    await this.makeShureToHaveWindow();
-
     const userWidthName = users.map((user) => ({
       ...user,
       name: `fake-${user.firstName}.${user.lastName}`,
     }));
     for (let payload of userWidthName) {
-      await this.page.evaluate((payload) => {
+      await page.evaluate((payload) => {
         console.log(payload);
         //@ts-ignore
         triggerUserWorkflowEvent(
@@ -178,13 +176,13 @@ export default class Ix {
     }
 
     await expect(async () => {
-      const user = await this.prisma.dsuser.findMany({
+      const user = await prisma.dsuser.findMany({
         where: { strlogin: { in: userWidthName.map((u) => u.name) } },
       });
       await expect(user.length).toBe(userWidthName.length);
     }).toPass({ timeout: 30000 });
 
-    const createdUsers = await this.prisma.dsuser.findMany({
+    const createdUsers = await prisma.dsuser.findMany({
       where: { strlogin: { in: userWidthName.map((u) => u.name) } },
     });
 
@@ -202,39 +200,39 @@ export default class Ix {
   }
 
   async clear() {
-    await this.prisma.per_t_pers_uk.deleteMany();
-    await this.prisma.per_t_pers_journal.deleteMany();
-    const fakeUsers = await this.prisma.dsuser.findMany({
+    await prisma.per_t_pers_uk.deleteMany();
+    await prisma.per_t_pers_journal.deleteMany();
+    const fakeUsers = await prisma.dsuser.findMany({
       where: { strlogin: { startsWith: "fake-" } },
     });
-    const fakePersonal = await this.prisma.per_t_personal.findMany({
+    const fakePersonal = await prisma.per_t_personal.findMany({
       where: { ref_benutzer: { in: fakeUsers.map((u) => u.lid) } },
     });
 
     if (fakePersonal.length < 1) return;
 
-    const fakeMonth = await this.prisma.ze_t_monat.findMany({
+    const fakeMonth = await prisma.ze_t_monat.findMany({
       where: { ref_benutzer: { in: fakeUsers.map((u) => u.lid) } },
     });
-    const fakeDays = await this.prisma.ze_t_m_datum.findMany({
+    const fakeDays = await prisma.ze_t_m_datum.findMany({
       where: { fkstrid: { in: fakeMonth.map((u) => u.strid) } },
     });
 
-    await this.prisma.per_t_pers_azk.deleteMany({
+    await prisma.per_t_pers_azk.deleteMany({
       where: { fkstrid: { in: fakePersonal.map((u) => u.strid) } },
     });
 
-    await this.prisma.ze_t_m_d_zeiten.deleteMany({
+    await prisma.ze_t_m_d_zeiten.deleteMany({
       where: { fkstrid: { in: fakeDays.map((u) => u.strid) } },
     });
-    await this.prisma.ze_t_m_datum.deleteMany({
+    await prisma.ze_t_m_datum.deleteMany({
       where: { fkstrid: { in: fakeMonth.map((u) => u.strid) } },
     });
-    await this.prisma.ze_t_monat.deleteMany({
+    await prisma.ze_t_monat.deleteMany({
       where: { ref_benutzer: { in: fakeUsers.map((u) => u.lid) } },
     });
 
-    await this.prisma.per_t_personal.deleteMany({
+    await prisma.per_t_personal.deleteMany({
       where: { ref_benutzer: { in: fakeUsers.map((u) => u.lid) } },
     });
   }
@@ -244,6 +242,6 @@ export default class Ix {
   getUrl(page: keyof typeof this.pages) {
     return `/path/app/?rq_AppGuid=B4CDF219609F40E72551229BB5C04BB34FC3769C&rq_TargetPageGuid=20ACFD136A596F23A87F4C1F84D226380AFFC3E3&qs_link=52A5B83B0FAA929FFA7AFFEBB364BDDE0CD24193&qs_mode=new&qs_page=20ACFD136A596F23A87F4C1F84D226380AFFC3E3&qs_reload=20ACFD136A596F23A87F4C1F84D226380AFFC3E3`;
   }
-
-  prisma = prisma;
 }
+
+export const ix = new Ix();

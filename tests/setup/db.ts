@@ -1,11 +1,13 @@
 import { test as base } from "@playwright/test";
-import DBSetup from "./DB/DBsetup";
+import DBSetup, { prisma } from "./DB/DBsetup";
 import IX from "./Ix/ix";
 
 type MYFixtures = {
   dataBase: DBSetup;
   ix: IX;
 };
+
+export { prisma };
 
 export const test = base.extend<MYFixtures>({
   dataBase: async ({}, use) => {

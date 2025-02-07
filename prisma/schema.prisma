@@ -4145,9 +4145,10 @@ model lcschedstatistics {
 }
 
 model lcsearchalternative {
-  strquery       String @db.VarChar(512)
-  stralternative String @db.VarChar(512)
-  lcount         Int
+  strquery          String  @db.VarChar(512)
+  stralternative    String  @db.VarChar(512)
+  lquerycount       BigInt?
+  lalternativecount BigInt?
 
   @@id([strquery, stralternative])
   @@index([strquery], map: "ix_lcseaalt_1")
@@ -4557,6 +4558,9 @@ model per_t_personal {
   l_startwertsekunden                                       Int?
   b_eingerichtet                                            Boolean?
   str_startwertplusminus                                    String?                @db.VarChar(255)
+  l_startwertauesekunden                                    Int?
+  l_startwertauestunden                                     Int?
+  l_startwertaueminuten                                     Int?
   abp_t_abp_ma                                              abp_t_abp_ma[]
   abp_t_abp_ma_details                                      abp_t_abp_ma_details[]
   abp_t_abp_status                                          abp_t_abp_status[]
@@ -4704,18 +4708,20 @@ model prat_k_beschaeftigtengrupp {
 }
 
 model prat_k_rollen {
+  b_vorstand             Boolean?
+  b_nachrueckenzulaessig Boolean?
   luserid                Int?
   luseridinsert          Int?
   l_sortierung           Int?
   str_rolleimpersonalrat String?                 @db.VarChar(255)
   b_stdeinladung         Boolean?
+  b_ordentlichesmitglied Boolean?
   lid                    Int                     @id
   dtinsert               DateTime?               @db.Timestamp(6)
   dtedit                 DateTime?               @db.Timestamp(6)
   b_nachruecker          Boolean?
   prat_mitglieder        prat_mitglieder[]
   prat_sitzg_teilnehmer  prat_sitzg_teilnehmer[]
-  prat_sitzungen         prat_sitzungen[]
 }
 
 model prat_k_sitzungsnamen {
@@ -4750,28 +4756,27 @@ model prat_k_systemwerte {
 }
 
 model prat_k_tatbestaende {
-  str_tatbestandschlagwort String?          @db.VarChar(255)
-  str_beteiligung          String?          @db.VarChar(255)
+  str_tatbestandschlagwort String?   @db.VarChar(255)
+  str_beteiligung          String?   @db.VarChar(255)
   luserid                  Int?
-  lid                      Int              @id
-  dtinsert                 DateTime?        @db.Timestamp(6)
+  lid                      Int       @id
+  dtinsert                 DateTime? @db.Timestamp(6)
   luseridinsert            Int?
   b_tatbestandaktiv        Boolean?
-  dtedit                   DateTime?        @db.Timestamp(6)
-  str_tatbestandtext       String?          @db.VarChar(255)
-  dt_tatbestanddatumab     DateTime?        @db.Timestamp(6)
-  prat_vorgaenge           prat_vorgaenge[]
+  dtedit                   DateTime? @db.Timestamp(6)
+  str_tatbestandtext       String?   @db.VarChar(255)
+  dt_tatbestanddatumab     DateTime? @db.Timestamp(6)
 }
 
 model prat_k_top_kategorien {
-  luseridinsert   Int?
-  luserid         Int?
-  dtinsert        DateTime?         @db.Timestamp(6)
-  strid           String            @id @db.VarChar(255)
-  str_gruppe_name String?           @db.VarChar(255)
-  l_gruppe_nummer Int?
-  dtedit          DateTime?         @db.Timestamp(6)
-  prat_sitzg_tops prat_sitzg_tops[]
+  luseridinsert      Int?
+  luserid            Int?
+  dtinsert           DateTime? @db.Timestamp(6)
+  strid              String    @id @db.VarChar(255)
+  str_gruppe_name    String?   @db.VarChar(255)
+  l_gruppe_nummer    Int?
+  dtedit             DateTime? @db.Timestamp(6)
+  str_importmatching String?   @db.VarChar(255)
 }
 
 model prat_k_top_themen {
@@ -4808,12 +4813,11 @@ model prat_k_visimportfelder {
 model prat_k_vorgangsstatus {
   luserid            Int?
   b_importiert       Boolean?
-  strid              String            @id @db.VarChar(255)
+  strid              String           @id @db.VarChar(255)
   luseridinsert      Int?
-  dtinsert           DateTime?         @db.Timestamp(6)
-  str_vorgangsstatus String?           @db.VarChar(255)
-  dtedit             DateTime?         @db.Timestamp(6)
-  prat_sitzg_tops    prat_sitzg_tops[]
+  dtinsert           DateTime?        @db.Timestamp(6)
+  str_vorgangsstatus String?          @db.VarChar(255)
+  dtedit             DateTime?        @db.Timestamp(6)
   prat_vorgaenge     prat_vorgaenge[]
 }
 
@@ -4865,7 +4869,6 @@ model prat_mitglieder {
   prat_k_wahllisten              prat_k_wahllisten?          @relation(fields: [ref_zkat_wahllisten], references: [lid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratmitgli31")
   prat_k_wahlperioden            prat_k_wahlperioden?        @relation(fields: [ref_zkat_wahlperioden], references: [lid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratmitgli41")
   prat_sitzg_teilnehmer          prat_sitzg_teilnehmer[]
-  prat_sitzungen                 prat_sitzungen[]
 
   @@index([ref_users_id], map: "refmitgliedbenut21")
   @@index([ref_zkat_beschaeftigtengruppen], map: "refmitgliedbesch11")
@@ -4903,70 +4906,44 @@ model prat_sitzg_teilnehmer {
 }
 
 model prat_sitzg_tops {
-  ref_topvorgang                                                String?                @db.VarChar(255)
-  fkstrid                                                       String?                @db.VarChar(255)
-  dtedit                                                        DateTime?              @db.Timestamp(6)
+  ref_topvorgang                                                String?         @db.VarChar(255)
+  fkstrid                                                       String?         @db.VarChar(255)
+  dtedit                                                        DateTime?       @db.Timestamp(6)
   luseridinsert                                                 Int?
   luserid                                                       Int?
-  ref_34a318b5                                                  String?                @db.VarChar(255)
-  strid                                                         String                 @id @db.VarChar(255)
-  dtinsert                                                      DateTime?              @db.Timestamp(6)
-  ref_5545e8f8                                                  String?                @db.VarChar(255)
+  strid                                                         String          @id @db.VarChar(255)
+  dtinsert                                                      DateTime?       @db.Timestamp(6)
   txt_topprotokoll                                              String?
-  prat_sitzungen_prat_sitzg_tops_fkstridToprat_sitzungen        prat_sitzungen?        @relation("prat_sitzg_tops_fkstridToprat_sitzungen", fields: [fkstrid], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "fk_xdatagroup7a4e1")
-  prat_vorgaenge_prat_sitzg_tops_ref_topvorgangToprat_vorgaenge prat_vorgaenge?        @relation("prat_sitzg_tops_ref_topvorgangToprat_vorgaenge", fields: [ref_topvorgang], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorga10")
-  prat_k_top_kategorien                                         prat_k_top_kategorien? @relation(fields: [ref_5545e8f8], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_prat_sitzg_to2")
-  prat_k_vorgangsstatus                                         prat_k_vorgangsstatus? @relation(fields: [ref_34a318b5], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_prat_sitzg_to3")
-  prat_sitzungen_prat_sitzungen_ref_ba572278Toprat_sitzg_tops   prat_sitzungen[]       @relation("prat_sitzungen_ref_ba572278Toprat_sitzg_tops")
-  prat_vorgaenge_prat_vorgaenge_ref_6dc3162bToprat_sitzg_tops   prat_vorgaenge[]       @relation("prat_vorgaenge_ref_6dc3162bToprat_sitzg_tops")
+  prat_sitzungen_prat_sitzg_tops_fkstridToprat_sitzungen        prat_sitzungen? @relation("prat_sitzg_tops_fkstridToprat_sitzungen", fields: [fkstrid], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "fk_xdatagroup7a4e1")
+  prat_vorgaenge_prat_sitzg_tops_ref_topvorgangToprat_vorgaenge prat_vorgaenge? @relation("prat_sitzg_tops_ref_topvorgangToprat_vorgaenge", fields: [ref_topvorgang], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorga10")
 
   @@index([fkstrid], map: "fx_xdg7a4ecf3f_1")
   @@index([ref_topvorgang], map: "refpersratvorgan1")
-  @@index([ref_34a318b5], map: "refsitzungentops1")
-  @@index([ref_5545e8f8], map: "refsitzungtoptop1")
 }
 
 model prat_sitzungen {
-  ref_09f73577                                                 String?                 @db.VarChar(255)
-  luseridinsert                                                Int?
-  dt_sitzungtermin                                             DateTime?               @db.Timestamp(6)
-  str_vorbesprechung                                           String?                 @db.VarChar(255)
-  ref_1f226fa4                                                 Int?
-  str_sitzungstatus                                            String?                 @db.VarChar(255)
-  strid                                                        String                  @id @db.VarChar(255)
-  dtedit                                                       DateTime?               @db.Timestamp(6)
-  str_sitzungname                                              String?                 @db.VarChar(255)
-  ref_ba572278                                                 String?                 @db.VarChar(255)
-  txt_vortext                                                  String?
-  dtinsert                                                     DateTime?               @db.Timestamp(6)
-  str_sitzungvorsitz                                           String?                 @db.VarChar(255)
-  ref_vorgang                                                  String?                 @db.VarChar(255)
-  luserid                                                      Int?
-  str_sitzungnummer_1                                          String?                 @db.VarChar(255)
-  ref_f4ac6cd3                                                 String?                 @db.VarChar(255)
-  prat_sitzg_teilnehmer                                        prat_sitzg_teilnehmer[]
-  prat_sitzg_tops_prat_sitzg_tops_fkstridToprat_sitzungen      prat_sitzg_tops[]       @relation("prat_sitzg_tops_fkstridToprat_sitzungen")
-  prat_mitglieder                                              prat_mitglieder?        @relation(fields: [ref_f4ac6cd3], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratsitzun3")
-  prat_vorgaenge_prat_sitzungen_ref_vorgangToprat_vorgaenge    prat_vorgaenge?         @relation("prat_sitzungen_ref_vorgangToprat_vorgaenge", fields: [ref_vorgang], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratsitzun4")
-  prat_sitzg_tops_prat_sitzungen_ref_ba572278Toprat_sitzg_tops prat_sitzg_tops?        @relation("prat_sitzungen_ref_ba572278Toprat_sitzg_tops", fields: [ref_ba572278], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratsitzun5")
-  prat_k_sitzungsstatus                                        prat_k_sitzungsstatus?  @relation(fields: [ref_09f73577], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_prat_sitzunge1")
-  prat_k_rollen                                                prat_k_rollen?          @relation(fields: [ref_1f226fa4], references: [lid], onDelete: NoAction, onUpdate: NoAction, map: "ref_prat_sitzunge2")
-  prat_vorgaenge_prat_vorgaenge_ref_b9f319b6Toprat_sitzungen   prat_vorgaenge[]        @relation("prat_vorgaenge_ref_b9f319b6Toprat_sitzungen")
+  ref_sitzungsstatus                                      String?                 @db.VarChar(255)
+  luseridinsert                                           Int?
+  txt_vortext                                             String?
+  dtinsert                                                DateTime?               @db.Timestamp(6)
+  dt_sitzungtermin                                        DateTime?               @db.Timestamp(6)
+  str_sitzungstatus                                       String?                 @db.VarChar(255)
+  luserid                                                 Int?
+  strid                                                   String                  @id @db.VarChar(255)
+  dtedit                                                  DateTime?               @db.Timestamp(6)
+  str_sitzungnummer_1                                     String?                 @db.VarChar(255)
+  str_sitzungname                                         String?                 @db.VarChar(255)
+  prat_sitzg_teilnehmer                                   prat_sitzg_teilnehmer[]
+  prat_sitzg_tops_prat_sitzg_tops_fkstridToprat_sitzungen prat_sitzg_tops[]       @relation("prat_sitzg_tops_fkstridToprat_sitzungen")
+  prat_k_sitzungsstatus                                   prat_k_sitzungsstatus?  @relation(fields: [ref_sitzungsstatus], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_prat_sitzunge1")
 
-  @@index([ref_vorgang], map: "refpersratsitzun1")
-  @@index([ref_ba572278], map: "refpersratsitzun2")
-  @@index([ref_09f73577], map: "refpersratsitzun3")
-  @@index([ref_1f226fa4], map: "refpersratsitzun4")
-  @@index([ref_f4ac6cd3], map: "refsitzungmitgli1")
+  @@index([ref_sitzungsstatus], map: "refpersratsitzun3")
 }
 
 model prat_vorgaenge {
   str_geschaeftszeichen                                          String?                @db.VarChar(255)
   dt_geaendertamschriftgut                                       DateTime?              @db.Timestamp(6)
   str_typ                                                        String?                @db.VarChar(255)
-  ref_b9f319b6                                                   String?                @db.VarChar(255)
-  ref_6a01e8e6                                                   Int?
-  ref_6dc3162b                                                   String?                @db.VarChar(255)
   strid                                                          String                 @id @db.VarChar(255)
   luseridinsert                                                  Int?
   str_kategorie                                                  String?                @db.VarChar(255)
@@ -4981,21 +4958,14 @@ model prat_vorgaenge {
   str_aufgabevis                                                 String?                @db.VarChar(255)
   txt_tatbestandvorgang                                          String?
   l_topkategorie_sortierung                                      Int?
-  ref_07317f2b                                                   String?                @db.VarChar(255)
+  ref_vorgangsstatus                                             String?                @db.VarChar(255)
   luserid                                                        Int?
   dtedit                                                         DateTime?              @db.Timestamp(6)
   dt_faelligam                                                   DateTime?              @db.Timestamp(6)
   prat_sitzg_tops_prat_sitzg_tops_ref_topvorgangToprat_vorgaenge prat_sitzg_tops[]      @relation("prat_sitzg_tops_ref_topvorgangToprat_vorgaenge")
-  prat_sitzungen_prat_sitzungen_ref_vorgangToprat_vorgaenge      prat_sitzungen[]       @relation("prat_sitzungen_ref_vorgangToprat_vorgaenge")
-  prat_sitzungen_prat_vorgaenge_ref_b9f319b6Toprat_sitzungen     prat_sitzungen?        @relation("prat_vorgaenge_ref_b9f319b6Toprat_sitzungen", fields: [ref_b9f319b6], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorga11")
-  prat_k_vorgangsstatus                                          prat_k_vorgangsstatus? @relation(fields: [ref_07317f2b], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorgan6")
-  prat_k_tatbestaende                                            prat_k_tatbestaende?   @relation(fields: [ref_6a01e8e6], references: [lid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorgan8")
-  prat_sitzg_tops_prat_vorgaenge_ref_6dc3162bToprat_sitzg_tops   prat_sitzg_tops?       @relation("prat_vorgaenge_ref_6dc3162bToprat_sitzg_tops", fields: [ref_6dc3162b], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorgan9")
+  prat_k_vorgangsstatus                                          prat_k_vorgangsstatus? @relation(fields: [ref_vorgangsstatus], references: [strid], onDelete: NoAction, onUpdate: NoAction, map: "ref_persratvorgan6")
 
-  @@index([ref_b9f319b6], map: "refvorgange1sitz1")
-  @@index([ref_6a01e8e6], map: "refvorgange1tatb1")
-  @@index([ref_07317f2b], map: "refvorgange1vorg1")
-  @@index([ref_6dc3162b], map: "refvorgange1vorg2")
+  @@index([ref_vorgangsstatus], map: "refvorgange1vorg1")
 }
 
 model prat_vorgaenge_import {
@@ -7625,6 +7595,7 @@ model ze_t_m_d_zeiten {
   @@index([ref_buchungsart], map: "buchungsartzeite1")
   @@index([fkstrid], map: "fx_xdged4b0246_1")
   @@index([ref_kostenstelle], map: "kostenstellezeit1")
+  @@index([fkstrid, ref_buchungsart, l_dauersekunden], map: "ix_ze_t_m_d_zei_1")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -7845,6 +7816,7 @@ model ze_t_monat {
   @@index([ref_freigabestatus], map: "freigabestatusze1")
   @@index([ref_personal], map: "personalpersonal1")
   @@index([ref_saldenkontrolle], map: "saldenkontrollez2")
+  @@index([strid, ref_personal, l_monat, l_jahr], map: "ix_ze_t_monat_1")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

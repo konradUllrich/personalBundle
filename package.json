@@ -12,7 +12,8 @@
     "dev": "npm run start && npm run open",
     "open": "powershell.exe -Command \"Start-Process 'C:/users/Konrad.ullrich/managers/12.0.0.20240528.8c4b823/IX-Manager.exe'\"",
     "stop": "docker compose down",
-    "killIntrex": "docker compose down -v"
+    "killIntrex": "docker compose down -v",
+    "prismaG": "prisma db pull && prisma generate"
   },
   "keywords": [],
   "author": "",
